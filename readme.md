@@ -10,12 +10,13 @@ Everything has been logged using tensorboard because it is interactive and prett
   
 ## Set of tasks to complete next
   
-* Reconstruction function to be able to get the whole image from all the reconstructed patches.    
-* Extensive experiments with hyperaparameters and variants of the network (are also hyperparameters, but experimented on independantly)  
+* ~~Reconstruction function to be able to get the whole image from all the reconstructed patches.~~     
+* ~~Extensive experiments with hyperaparameters and variants of the network (are also hyperparameters, but experimented on independantly)~~ (Paper results dont match but roughly hold, at least comparitively) 
+* Save a pretrained model and write an inference notebook
 * Current dataloader applies a simple transform CentreCrop instead of every patch in the image. This has to be changed to training on all patches in an image.  
 
 ## Potential set of tasks - Secondary priority
   
-* Try on a new dataset?  
+* ~~Try on a new dataset?~~ (tried on STL-10) 
 * Play with network configurations not mentioned in the paper  
 * Visualize intermediate layers to interpret what the model is doing  
