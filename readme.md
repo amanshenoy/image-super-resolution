@@ -9,7 +9,7 @@ The below tasks will be divided amongst all members and commits will be only mad
 Everything has been logged using tensorboard because it is interactive and pretty. For every update the MSE Loss and PSNR are plotted scalars, and an image array of 'Low res | High res | Reconstructed' is also added to tensorboard.  
   
 ## Set of tasks to complete next
-  
+* ~~Add notebook training script to be able to run on colab~~  
 * ~~Reconstruction function to be able to get the whole image from all the reconstructed patches.~~     
 * ~~Extensive experiments with hyperaparameters and variants of the network (are also hyperparameters, but experimented on independantly)~~ (Paper results dont match but roughly hold, at least comparitively) 
 * Save a pretrained model and write an inference notebook
