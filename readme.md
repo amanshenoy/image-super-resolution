@@ -12,8 +12,9 @@ Everything has been logged using tensorboard because it is interactive and prett
 * ~~Add notebook training script to be able to run on colab~~  
 * ~~Reconstruction function to be able to get the whole image from all the reconstructed patches.~~     
 * ~~Extensive experiments with hyperaparameters and variants of the network (are also hyperparameters, but experimented on independantly)~~ (Paper results dont match but roughly hold, at least comparitively) 
-* Save a pretrained model and write an inference notebook
-* Current dataloader applies a simple transform CentreCrop instead of every patch in the image. This has to be changed to training on all patches in an image.  
+* Save a pretrained model ~~and write an inference notebook~~
+* Current dataloader applies a simple transform CentreCrop instead of every patch in the image. This has to be changed to training on multiple patches in an image.  
+* Fix the artifacts - random multicolor dots come (Does not happen if output layer is sigmoid, and clipping/clamping is not the issue)
 
 ## Potential set of tasks - Secondary priority
   
