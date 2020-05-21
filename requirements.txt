@@ -18,7 +18,7 @@ chardet==3.0.4
 chrome-gnome-shell==0.0.0
 click==7.1.1
 colorama==0.3.7
-cryptography==2.1.4
+cryptography==2.3
 cupshelpers==1.0
 cycler==0.10.0
 decorator==4.4.2
