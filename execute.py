@@ -20,12 +20,9 @@ def execute(image_in, model, fs = 33, overlap = False, scale = 2):
     c, h, w = image_in.shape
     scale_transform = transforms.Resize((int(h * scale), int(w * scale)), interpolation=3)
 
-    down_transform = transforms.Resize((int(h * 0.5), int(w * 0.5)), interpolation=3)
-    
     to_pil = transforms.ToPILImage()
     to_tensor = transforms.ToTensor()
     image = to_tensor(scale_transform(to_pil(image_in)))
-    bad_image = to_tensor(scale_transform((down_transform(to_pil(image_in)))))
     n = 0
     c, h, w = image.shape
     image = image.unsqueeze(0)
@@ -69,13 +66,7 @@ def execute(image_in, model, fs = 33, overlap = False, scale = 2):
               patch = image[:, :, h - fs: h, j * fs: j * fs + fs]
               reconstructed_image[:, :, h - fs: h, j * fs: j * fs + fs] = model(patch)[0].cpu().clamp(0, 1)
           
-          os.makedirs("demonstrations/frames", exist_ok = True)
-          trichannel_filter = 1 - reconstructed_image_weights[0].to(device)
-          sample = to_pil((reconstructed_image[0].to(device) + bad_image.to(device) * trichannel_filter).cpu())
-          sample.save("demonstrations/frames/frame_{}.png".format(n))
-          gc.collect()
-
-      # Make the right bottom batch, since none of the edge cases have covered it
+      # Make the right bottom patch, since none of the edge cases have covered it
       patch = image[:, :, h - fs: h, w - fs: w]
       reconstructed_image[:, :, h - fs: h, w - fs: w] = model(patch)[0].cpu().clamp(0, 1)
     
@@ -92,6 +83,8 @@ def transform_image(path_to_image):
     return to_tensor(image)
 
 if __name__ == '__main__':
+
+    # Parse required command line arguments
     parser = ArgumentParser()
     parser.add_argument('--image', type = str)
     parser.add_argument('--scale', type = float,  default = 2)
@@ -99,21 +92,25 @@ if __name__ == '__main__':
     parser.add_argument('--saved', type = str, default = 'saved/isr_best.pth')
     args = parser.parse_args()
 
+    # If image link is given, then download and direct path variable to this image 
     if args.image[:4] == 'http':
         subprocess.check_output('wget -O ' + args.path + ' ' + args.image, shell = True)
         path_to_image = args.path
     else:
         path_to_image = args.image
 
+    # Instantiate model and load state dict using .pth file 
     model = SuperResolution()
     model.load_state_dict(torch.load(args.saved))
     model.to(device)
     model.eval()
 
+    # Run the progressive scan to increase resolution of the image 
     transformed = transform_image(path_to_image)
     reconstructed = execute(transformed, model, scale = args.scale)  
     to_pil = transforms.ToPILImage()
 
+    # Save the image in the same directory as the source
     out_image = to_pil(reconstructed.squeeze())
     out_image.save(path_to_image.rsplit('.')[0] + str('_upscaled.') + path_to_image.rsplit('.')[1])
     print("Image written to {}".format(path_to_image.rsplit('.')[0] + str('_upscaled.') + path_to_image.rsplit('.')[1])) 
