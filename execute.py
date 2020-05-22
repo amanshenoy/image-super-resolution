@@ -101,7 +101,10 @@ if __name__ == '__main__':
 
     # Instantiate model and load state dict using .pth file 
     model = SuperResolution()
-    model.load_state_dict(torch.load(args.saved))
+    if torch.cuda.is_available():
+      model.load_state_dict(torch.load(args.saved))
+    else:
+      model.load_state_dict(torch.load(args.saved, map_location={'cuda:0': 'cpu'}))
     model.to(device)
     model.eval()
 
