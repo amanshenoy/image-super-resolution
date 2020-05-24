@@ -15,6 +15,14 @@ def execute(image_in, model, fs = 33, overlap = False, scale = 2):
     Executes the model trained on colab, on any image given (link or local), with an 
     upscaling factor as mentioned in the arguments. For best results, use a scale of
     2 or lesser, since the model was trained on a scale of 2
+    Inputs : image_in               -> torch.tensor representing the image, can be easily obtained from 
+                                       transform_image function in this script (torch.tensor)
+             model                  -> The trained model, trained using the same patch size 
+                                       (object of the model class, inherited from nn.Module) 
+             fs                     -> Patch size, on which the model is run (int)
+             overlap                -> Reconstruction strategy, more details in the readme (bool)
+             scale                  -> Scale on which the image is upscaled (float) 
+    Outputs: reconstructed_image    -> The higher definition image as output (torch.tensor)
     """
     # Write the transforms and prepare the empty array for the image to be written
     c, h, w = image_in.shape
@@ -77,6 +85,8 @@ def execute(image_in, model, fs = 33, overlap = False, scale = 2):
 def transform_image(path_to_image):
     """
     To simplify the transformation of an image
+    Input : path_to_image     -> local path to image file
+    Output: to_tensor(image)  -> image stored as tensor (torch.tensor) 
     """
     image = Image.open(path_to_image)
     to_tensor = transforms.ToTensor()
