@@ -1,12 +1,49 @@
 # Image Super Resolution using Deep Convolutional Networks - PyTorch Implementation
-The following is the repository for project component of the course Neural Networks and Fuzzy Logic by - Aman Shenoy, Arnav Gupta, and Nikhil Gupta. The rest of this readme will follow the presentation structure (to maintain consistency), with instructions on how to run the code towards the end. Original paper can be found [here](https://arxiv.org/abs/1501.00092) 
+The following is the repository for Assignment 2 of course *Selected Topics in Computer Science*. The rest of this readme will follow an organized structure, with instructions on how to run the code towards the end. Original paper can be found [here](https://arxiv.org/abs/1501.00092). 
 
 Our models have been trained with a scaling factor of 2, so the image during model exectution can be upscaled to upto twice its original size. (One can choose the scale at which the image is to be upscaled during execution).  
 
 ## Datasets Used and Augmentation Schemes
 Our original intention was to use ImageNet for both training and testing, but since it is no more available on PyTorch's dataset module, we have instead used [STL-10](https://ai.stanford.edu/~acoates/stl10/) for training, and images from [TextVQA dataset](https://textvqa.org/dataset) (Already had it sitting in drive) for testing. 
 
-As mentioned, we were to use any two augmentation schemes in our implementation. We used the torchvisions transform TenCrop to be able to do within torchvision transforms. For every image, TenCrop generated 10 different augments (4 corner crops + 1 center crop - all of these horizontally flipped), thus increasing our dataset size ten-fold. Since the transform gives a tuple and not a torch tensor, this problem had to be specifically handled during training.
+We used the torchvisions transform TenCrop to be able to do within torchvision transforms. For every image, TenCrop generated 10 different augments (4 corner crops + 1 center crop - all of these horizontally flipped), thus increasing our dataset size ten-fold. Since the transform gives a tuple and not a torch tensor, this problem had to be specifically handled during training.
+
+## Qualitative Results
+**We have focused extensively on qualitative results due to the nature of the project. All visualizations and animations were made with extensive use of tensorboard and ffmpeg.** Below is an example of the result from the execute function -
+| Original Image | Reconstructed |
+:---------------:|:--------------:|
+![](https://github.com/amanshenoy/image-super-resolution/blob/master/results/monarch.bmp) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/results/monarch_upscaled.bmp)
+
+Along with the output, we have also generated animations that help better interpret what happens in the intermediate layers.   
+
+Below shows two images along with their reconstructions as training progresses for the first 20 epochs. The generated `.gif` runs for 4 seconds and is generated at 5fps (evaluating to 20 frames, 1 for every epoch of the first 20)
+| Image patch 1 | Training Progress | Image patch 2 | Training progress |
+:--------------:|:-----------------:|:--------------:|:-----------------:|
+![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/patch_25.png) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/r1_other.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/patch_30.png) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/r2_other.gif) 
+
+Along with this, we have also visualized intermediate layers for interpretation. For the volume generated after the second convolutional layer, we visualized random channels (out of the 64 channels of the output of that layer), for the same 2 inputs above.
+
+| Channel 16/64 on image patch 1 | Channel 00/64 on image patch 1| Channel 05/64 on image patch 2 | Channel 08/64 on image patch 2 |
+:--------------:|:-----------------:|:--------------:|:-----------------:|
+![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_16.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_0.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_5.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_8.gif) 
+
+| Channel 02/64 on image patch 2 | Channel 03/64 on image patch 2| Channel 32/64 on image patch 1 | Channel 48/64 on image patch 1 |
+:--------------:|:-----------------:|:--------------:|:-----------------:|
+![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_2.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_3.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_32.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_48.gif) 
+
+This lets us interpret what the kernels of the convolutional layers try to learn. As we can see from the animations above, some kernels seem to segment subject and background (Channel 08/64 on image patch 2) and some kernels act as edge detectors (Channel 16/64 on image patch 1).
+
+Once this model is trained, we use two strategies to execute - overlapping and non-overlapping. 
+
+Overlapping would evaluate the model on every possible 33 x 33 patch of the image, and the value for a pixel is the average of all the values obtained for that pixel (each pixel can be a part of multiple patches). e.g. The first patch diagonal is (0, 0) to (33, 33) ; second patch diagonal is (1, 0) to (34, 33)
+
+Non-overlapping on the other hand evlautes the model on each pixel only once e.g. The first patch diagonal is (0, 0) to (33, 33) ; second patch diagonal is (33, 0) to (66, 33).   
+
+Since overlapping evaluates much lesser patches, it is much quicker and uses significantly lesser memory. The progressive (top to bottom) run over an image is visualized below. 
+
+|Top to bottom progressive scan using non-overlapping patches (Look carefully to be able to spot the scan)|
+|:----------------------------------------------------------:|
+|![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/progressive.gif)|
 
 ## Quantitative Results
 Shown below are the results of our model, during the progress of training on test and training set.  
@@ -31,39 +68,6 @@ Even though PSNR and MSE can be related mathematically, MSE has been plotted sin
 :-----------------------------------------------------------------------------:
 |![bicubic](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/PSNR%20of%20BiCubic%20Interpolation%20(For%20comparision)%20(1).svg)|
 This is important because, uptil this value the model had not learned anything useful. PSNR beyond this value is when the model begins to learn something.  
-
-## Qualitative Results
-**We have focused extensively on qualitative results due to the nature of the project. All visualizations and animations were made with extensive use of tensorboard and ffmpeg.** Below is an example of the result from the execute function -
-| Original Image | Reconstructed |
-:---------------:|:--------------:|
-![](https://github.com/amanshenoy/image-super-resolution/blob/master/results/monarch.bmp) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/results/monarch_upscaled.bmp)
-
-Along with the output, we have also generated animations that help better interpret what happens in the intermediate layers.   
-
-Below shows two images along with their reconstructions as training progresses for the first 20 epochs. The generated `.gif` runs for 4 seconds and is generated at 5fps (evaluating to 20 frames, 1 for every epoch of the first 20)
-| Image patch 1 | Training Progress | Image patch 2 | Training progress |
-:--------------:|:-----------------:|:--------------:|:-----------------:|
-![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/patch_25.png) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/r1_other.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/patch_30.png) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/r2_other.gif) 
-
-Along with this, we have also visualized intermediate layers for interpretation. For the volume generated after the second convolutional layer, we visualized random channels (out of the 64 channels of the output of that layer), for the same 2 inputs above.
-
-| Channel 16/64 on image patch 1 | Channel 00/64 on image patch 1| Channel 05/64 on image patch 2 | Channel 08/64 on image patch 2 |
-:--------------:|:-----------------:|:--------------:|:-----------------:|
-![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_16.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_0.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_5.gif) | ![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/channel_8.gif) 
-
-This lets us interpret what the kernels of the convolutional layers try to learn. As we can see from the animations above, some kernels seem to segment subject and background (Channel 08/64 on image patch 2) and some kernels act as edge detectors (Channel 16/64 on image patch 1).
-
-Once this model is trained, we use two strategies to execute - overlapping and non-overlapping. 
-
-Overlapping would evaluate the model on every possible 33 x 33 patch of the image, and the value for a pixel is the average of all the values obtained for that pixel (each pixel can be a part of multiple patches). e.g. The first patch diagonal is (0, 0) to (33, 33) ; second patch diagonal is (1, 0) to (34, 33)
-
-Non-overlapping on the other hand evlautes the model on each pixel only once e.g. The first patch diagonal is (0, 0) to (33, 33) ; second patch diagonal is (33, 0) to (66, 33).   
-
-Since overlapping evaluates much lesser patches, it is much quicker and uses significantly lesser memory. The progressive (top to bottom) run over an image is visualized below. 
-
-|Top to bottom progressive scan using non-overlapping patches (Look carefully to be able to spot the scan)|
-|:----------------------------------------------------------:|
-|![](https://github.com/amanshenoy/image-super-resolution/blob/master/demonstrations/progressive.gif)|
 
 ## How to Implement
 Implementation begins with the only assumption that `pip` and `python` are installed and functional. 
